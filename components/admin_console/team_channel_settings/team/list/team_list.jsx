@@ -103,20 +103,29 @@ export default class TeamList extends React.PureComponent {
     }
 
     getDataBySearch = async (page, perPage) => {
-        const response = await this.props.actions.searchTeams(this.state.searchString, true, page, perPage);
-        const teams = new Array(page * perPage); // Pad the array with empty entries because AbstractList expects to slice the results based on the pagination offset.
-        return teams.concat(response.data.teams);
+        if (this.state.searchString.length > 1) {
+            const response = await this.props.actions.searchTeams(this.state.searchString, true, page, perPage);
+            const teams = new Array(page * perPage); // Pad the array with empty entries because AbstractList expects to slice the results based on the pagination offset.
+            return teams.concat(response.data.teams);
+        }
+        return [];
     }
 
     resetSearch = () => {
         this.setState({searchString: '', teams: [], searchMode: false, searchTotalCount: 0, pageResetKey: Date.now()});
     }
 
+    onPageChangedCallback = (pagination, teams) => {
+        if (this.state.searchMode) {
+            this.setState({teams});
+        }
+    }
+
     render() {
         const absProps = {...this.props};
-         if (this.state.searchMode) {
-             absProps.actions.getData = this.getDataBySearch;
-         }
+        if (this.state.searchMode) {
+            absProps.actions.getData = this.getDataBySearch;
+        }
         return (
             <AbstractList
                 header={this.header()}
